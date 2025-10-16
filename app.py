@@ -1,11 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-# A biblioteca country_converter não foi usada no seu código original,
-# mas a manterei caso você queira usá-la no futuro.
-# import country_converter as coco 
+import country_converter as coco
 
-# CSS (estiliza partes especificas)
+# CSS(estiliza partes especificas)
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -21,16 +19,17 @@ st.markdown("""
         padding: 2px 6px;
         margin: 2px;
     }
+    [data-testid=""]
+            
     </style>
 """, unsafe_allow_html=True)
 
-# Configuração da URL (pagina)
+#Configuração da URL (pagina)
 st.set_page_config(page_title="Dashboard ODS 7", layout="wide")
 
-# Carregar dados em CSV
+#Carregar dados em CSV
 @st.cache_data
 def carregar_dados():
-    # Supondo que o arquivo CSV está na mesma pasta
     df = pd.read_csv('acesso_eletricidade_limpo.csv')
     df = df.rename(columns={'Pais': 'Entidade'})
     return df
@@ -39,17 +38,9 @@ df = carregar_dados()
 
 # Título 
 st.title("Acessibilidade à Eletricidade")
-st.write("A ODS 7 busca garantir que todas as pessoas tenham acesso à
-energia acessível, confiável e sustentável até 2030. Para isso, incentiva o uso de fontes
-renováveis e a melhoria da eficiência energética, essenciais para o desenvolvimento econômico e a preservação ambiental.")
 
 # Sidebar
-# Supondo que você tenha uma imagem na pasta 'images'
-try:
-    st.sidebar.image('images.png')
-except:
-    st.sidebar.warning("Imagem 'images.png' não encontrada.")
-
+st.sidebar.image('images.png')
 st.sidebar.header("Filtros")
 
 lista_entidades = sorted(df['Entidade'].unique())
@@ -58,18 +49,19 @@ lista_anos = sorted(df['Ano'].unique())
 entidades_selecionados = st.sidebar.multiselect(
     label="Escolha as entidades para visualizar:",
     options=lista_entidades,
-    default=['Brazil', 'Angola', 'South Africa', 'United States', 'India'] 
+     default= ['Brazil', 'Angola', 'South Africa', 'United States', 'India'] 
 )
+
 
 # Filtrar dados
 df_filtrado = df[df['Entidade'].isin(entidades_selecionados)]
 
 # Criar abas 
-tab1, tab2, tab3 = st.tabs(["Evolução", "Média por Entidade", "Foco em um Ano"])
+tab1, tab2, tab3 = st.tabs(["Evolução", " Média por Entidade", " Foco em um Ano"])
 
-# Visualização com o plotly
+#visualização com o plotly
 with tab1:
-    st.subheader("Evolução do Acesso à Eletricidade")
+    st.subheader(" Evolução do Acesso à Eletricidade")
     fig1 = px.line(
         df_filtrado,
         x='Ano',
@@ -81,54 +73,43 @@ with tab1:
     )
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- ABA 2 MODIFICADA ---
+
 with tab2:
-    st.subheader("Média do Percentual de Acesso à Eletricidade (2000–2023)")
+    st.subheader(" Média do Percentual de Acesso à Eletricidade (2000–2023)")
     df_media = (
         df_filtrado.groupby('Entidade')['Percentual_Acesso']
         .mean()
         .reset_index()
-        .sort_values(by='Percentual_Acesso', ascending=True) # Mudei para 'ascending=True' para melhor visualização horizontal
+        .sort_values(by='Percentual_Acesso', ascending=False)
     )
-    
-    # MUDANÇA AQUI: Gráfico de barras horizontais
     fig2 = px.bar(
         df_media,
-        x='Percentual_Acesso', # Eixo X agora é o valor
-        y='Entidade',          # Eixo Y agora é a categoria
-        orientation='h',       # Define a orientação como horizontal
+        x='Entidade',
+        y='Percentual_Acesso',
         color='Entidade',
         title='Média do Acesso à Eletricidade por País',
-        labels={'Percentual_Acesso': 'Média % da População com Acesso', 'Entidade': 'Entidade'}
+        labels={'Percentual_Acesso': 'Média % da População com Acesso'}
     )
     st.plotly_chart(fig2, use_container_width=True)
 
-# --- ABA 3 MODIFICADA ---
+
 with tab3:
-    st.subheader("Comparativo de Acesso à Eletricidade em um Ano Específico")
+    st.subheader(" Comparativo de Acesso à Eletricidade em um Ano Específico")
     ano_foco = st.selectbox("Escolha o ano de foco:", lista_anos, index=len(lista_anos)-1)
-    df_ano = df[df['Ano'] == ano_foco].copy() # Usar .copy() para evitar SettingWithCopyWarning
+    df_ano = df[df['Ano'] == ano_foco]
     df_ano = df_ano[df_ano['Entidade'].isin(entidades_selecionados)]
-    df_ano['Percentual_Acesso_Texto'] = df_ano['Percentual_Acesso'].apply(lambda x: f'{x:.1f}%')
 
-
-    # MUDANÇA AQUI: Gráfico de Dispersão (Strip Plot)
-    fig3 = px.strip(
+    fig3 = px.bar(
         df_ano,
-        x='Percentual_Acesso',
-        y='Entidade',
-        orientation='h', # Orientação horizontal para melhor leitura
+        x='Entidade',
+        y='Percentual_Acesso',
         color='Entidade',
-        hover_name='Entidade',
-        hover_data={'Percentual_Acesso': ':.2f', 'Entidade': False},
+        text='Percentual_Acesso',
         title=f'Comparativo de Acesso à Eletricidade em {ano_foco}',
-        labels={'Percentual_Acesso': '% da População com Acesso', 'Entidade': 'Entidade'}
+        labels={'Percentual_Acesso': '% da População com Acesso'}
     )
-    # Ajuste para aumentar o tamanho dos pontos
-    fig3.update_traces(marker=dict(size=15))
+    fig3.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
     st.plotly_chart(fig3, use_container_width=True)
 
-
-with st.expander("Ver dados filtrados"):
+with st.expander(" Ver dados filtrados"):
     st.dataframe(df_filtrado)
-
