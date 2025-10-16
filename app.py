@@ -1,0 +1,115 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import country_converter as coco
+
+# CSS(estiliza partes especificas)
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #FDB713; /* Amarelo ODS 7 */
+        padding: 2rem 1rem; 
+        color: white;
+    }
+
+    [data-testid="stSidebar"] .stMultiSelect [data-testid="stMarkdownContainer"] p {
+        background-color: #FDB713;
+        color: #ffffff;
+        border-radius: 5px;
+        padding: 2px 6px;
+        margin: 2px;
+    }
+    [data-testid=""]
+            
+    </style>
+""", unsafe_allow_html=True)
+
+#Configuração da URL (pagina)
+st.set_page_config(page_title="Dashboard ODS 7", layout="wide")
+
+#Carregar dados em CSV
+@st.cache_data
+def carregar_dados():
+    df = pd.read_csv('acesso_eletricidade_limpo.csv')
+    df = df.rename(columns={'Pais': 'Entidade'})
+    return df
+
+df = carregar_dados()
+
+# Título 
+st.title("Acessibilidade à Eletricidade")
+
+# Sidebar
+st.sidebar.image('images.png')
+st.sidebar.header("Filtros")
+
+lista_entidades = sorted(df['Entidade'].unique())
+lista_anos = sorted(df['Ano'].unique())
+
+entidades_selecionados = st.sidebar.multiselect(
+    label="Escolha as entidades para visualizar:",
+    options=lista_entidades,
+     default= ['Brazil', 'Angola', 'South Africa', 'United States', 'India'] 
+)
+
+
+# Filtrar dados
+df_filtrado = df[df['Entidade'].isin(entidades_selecionados)]
+
+# Criar abas 
+tab1, tab2, tab3 = st.tabs(["Evolução", " Média por Entidade", " Foco em um Ano"])
+
+#visualização com o plotly
+with tab1:
+    st.subheader(" Evolução do Acesso à Eletricidade")
+    fig1 = px.line(
+        df_filtrado,
+        x='Ano',
+        y='Percentual_Acesso',
+        color='Entidade',
+        markers=True,
+        title='Evolução do Acesso à Eletricidade nas Entidades Selecionados',
+        labels={'Percentual_Acesso': '% da População com Acesso'}
+    )
+    st.plotly_chart(fig1, use_container_width=True)
+
+
+with tab2:
+    st.subheader(" Média do Percentual de Acesso à Eletricidade (2000–2023)")
+    df_media = (
+        df_filtrado.groupby('Entidade')['Percentual_Acesso']
+        .mean()
+        .reset_index()
+        .sort_values(by='Percentual_Acesso', ascending=False)
+    )
+    fig2 = px.bar(
+        df_media,
+        x='Entidade',
+        y='Percentual_Acesso',
+        color='Entidade',
+        title='Média do Acesso à Eletricidade por País',
+        labels={'Percentual_Acesso': 'Média % da População com Acesso'}
+    )
+    st.plotly_chart(fig2, use_container_width=True)
+
+
+with tab3:
+    st.subheader(" Comparativo de Acesso à Eletricidade em um Ano Específico")
+    ano_foco = st.selectbox("Escolha o ano de foco:", lista_anos, index=len(lista_anos)-1)
+    df_ano = df[df['Ano'] == ano_foco]
+    df_ano = df_ano[df_ano['Entidade'].isin(entidades_selecionados)]
+
+    fig3 = px.bar(
+        df_ano,
+        x='Entidade',
+        y='Percentual_Acesso',
+        color='Entidade',
+        text='Percentual_Acesso',
+        title=f'Comparativo de Acesso à Eletricidade em {ano_foco}',
+        labels={'Percentual_Acesso': '% da População com Acesso'}
+    )
+    fig3.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
+    st.plotly_chart(fig3, use_container_width=True)
+
+with st.expander(" Ver dados filtrados"):
+    st.dataframe(df_filtrado)
