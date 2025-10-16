@@ -83,13 +83,14 @@ with tab2:
         df_filtrado.groupby('Entidade')['Percentual_Acesso']
         .mean()
         .reset_index()
-        .sort_values(by='Percentual_Acesso', ascending=True) # Mudei para 'ascending=True' para melhor visualização horizontal
+        .sort_values(by='Percentual_Acesso', ascending=True) # Melhor para visualização horizontal
     )
     
+    # GRÁFICO DE BARRAS HORIZONTAIS
     fig2 = px.bar(
         df_media,
-        x='Percentual_Acesso', # Eixo X agora é o valor
-        y='Entidade',          # Eixo Y agora é a categoria
+        x='Percentual_Acesso', # Eixo X agora é o valor numérico
+        y='Entidade',          # Eixo Y agora são as categorias (países)
         orientation='h',       # Define a orientação como horizontal
         color='Entidade',
         title='Média do Acesso à Eletricidade por País',
@@ -100,27 +101,25 @@ with tab2:
 with tab3:
     st.subheader("Comparativo de Acesso à Eletricidade em um Ano Específico")
     ano_foco = st.selectbox("Escolha o ano de foco:", lista_anos, index=len(lista_anos)-1)
-    df_ano = df[df['Ano'] == ano_foco].copy() # Usar .copy() para evitar SettingWithCopyWarning
+    df_ano = df[df['Ano'] == ano_foco]
     df_ano = df_ano[df_ano['Entidade'].isin(entidades_selecionados)]
-    df_ano['Percentual_Acesso_Texto'] = df_ano['Percentual_Acesso'].apply(lambda x: f'{x:.1f}%')
 
-
-    # MUDANÇA AQUI: Gráfico de Dispersão (Strip Plot)
+    # GRÁFICO DE DISPERSÃO (STRIP PLOT)
     fig3 = px.strip(
         df_ano,
         x='Percentual_Acesso',
         y='Entidade',
         orientation='h', # Orientação horizontal para melhor leitura
         color='Entidade',
-        hover_name='Entidade',
-        hover_data={'Percentual_Acesso': ':.2f', 'Entidade': False},
         title=f'Comparativo de Acesso à Eletricidade em {ano_foco}',
         labels={'Percentual_Acesso': '% da População com Acesso', 'Entidade': 'Entidade'}
     )
-    # Ajuste para aumentar o tamanho dos pontos
-    fig3.update_traces(marker=dict(size=15))
+    # Ajusta o tamanho dos marcadores para melhor visualização
+    fig3.update_traces(marker=dict(size=18, line_width=1, color='white'), selector=dict(mode='markers'))
+    st.plotly_chart(fig3, use_container_width=True)
     st.plotly_chart(fig3, use_container_width=True)
 
 
 with st.expander("Ver dados filtrados"):
     st.dataframe(df_filtrado)
+
