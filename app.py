@@ -99,8 +99,8 @@ with tab3:
     ano_foco = st.selectbox("Escolha o ano de foco:", lista_anos, index=len(lista_anos)-1)
     df_ano = df[df['Ano'] == ano_foco]
     df_ano = df_ano[df_ano['Entidade'].isin(entidades_selecionados)]
-    
-fig3 = px.line_polar(
+
+    fig3 = px.line_polar(
     df_ano,
     r='Percentual_Acesso',
     theta='Entidade',
@@ -108,9 +108,10 @@ fig3 = px.line_polar(
     color='Entidade',
     title=f'Comparativo de Acesso à Eletricidade em {ano_foco}'
 )
-    fig3.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
+    
     st.plotly_chart(fig3, use_container_width=True)
 
 with st.expander(" Ver dados filtrados"):
+
     st.dataframe(df_filtrado)
 
