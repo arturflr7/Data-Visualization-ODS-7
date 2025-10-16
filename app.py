@@ -82,14 +82,15 @@ with tab2:
         .reset_index()
         .sort_values(by='Percentual_Acesso', ascending=False)
     )
-    fig2 = px.bar(
-        df_media,
-        x='Entidade',
-        y='Percentual_Acesso',
-        color='Entidade',
-        title='Média do Acesso à Eletricidade por País',
-        labels={'Percentual_Acesso': 'Média % da População com Acesso'}
-    )
+  fig2 = px.scatter(
+    df_media,
+    x='Entidade',
+    y='Percentual_Acesso',
+    size='Percentual_Acesso',
+    color='Entidade',
+    title='Média do Acesso à Eletricidade por País',
+    labels={'Percentual_Acesso': 'Média % da População com Acesso'}
+)
     st.plotly_chart(fig2, use_container_width=True)
 
 
@@ -98,18 +99,18 @@ with tab3:
     ano_foco = st.selectbox("Escolha o ano de foco:", lista_anos, index=len(lista_anos)-1)
     df_ano = df[df['Ano'] == ano_foco]
     df_ano = df_ano[df_ano['Entidade'].isin(entidades_selecionados)]
-
-    fig3 = px.bar(
-        df_ano,
-        x='Entidade',
-        y='Percentual_Acesso',
-        color='Entidade',
-        text='Percentual_Acesso',
-        title=f'Comparativo de Acesso à Eletricidade em {ano_foco}',
-        labels={'Percentual_Acesso': '% da População com Acesso'}
-    )
+    
+fig3 = px.line_polar(
+    df_ano,
+    r='Percentual_Acesso',
+    theta='Entidade',
+    line_close=True,
+    color='Entidade',
+    title=f'Comparativo de Acesso à Eletricidade em {ano_foco}'
+)
     fig3.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
     st.plotly_chart(fig3, use_container_width=True)
 
 with st.expander(" Ver dados filtrados"):
     st.dataframe(df_filtrado)
+
