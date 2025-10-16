@@ -39,6 +39,9 @@ df = carregar_dados()
 
 # Título 
 st.title("Acessibilidade à Eletricidade")
+st.write("A ODS 7 busca garantir que todas as pessoas tenham acesso à
+energia acessível, confiável e sustentável até 2030. Para isso, incentiva o uso de fontes
+renováveis e a melhoria da eficiência energética, essenciais para o desenvolvimento econômico e a preservação ambiental.")
 
 # Sidebar
 # Supondo que você tenha uma imagem na pasta 'images'
@@ -128,3 +131,4 @@ with tab3:
 
 with st.expander("Ver dados filtrados"):
     st.dataframe(df_filtrado)
+
